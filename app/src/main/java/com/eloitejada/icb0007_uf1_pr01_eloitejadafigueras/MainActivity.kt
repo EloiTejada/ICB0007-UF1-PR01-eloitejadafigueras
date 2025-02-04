@@ -1,66 +1,59 @@
 package com.eloitejada.icb0007_uf1_pr01_eloitejadafigueras
 
 import android.os.Bundle
+import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
             MyApp(mainViewModel)
         }
     }
+}
 
-    private fun loadLoginFragment() {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.frame_layout, LoginFragment(), "LoginFragment")
-            .commit()
-    }
+@Composable
+fun MyApp(viewModel: MainViewModel) {
+    val navController = rememberNavController()
 
-    private fun loadRocketListFragment() {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.frame_layout, RocketListFragment(), "RocketListFragment")
-            .commit()
-    }
-
-    fun onMainScreenLoaded() {
-        setContentView(R.layout.activity_main)
-        loadLoginFragment()
-    }
-
-    fun onRocketListScreenLoaded() {
-        setContentView(R.layout.activity_main)
-        loadRocketListFragment()
+    NavHost(
+        navController = navController,
+        startDestination = "splash_screen"
+    ) {
+        composable("splash_screen") {
+            SplashScreen(navController, viewModel)
+        }
+        composable("main_screen") {
+            MainScreen(navController)
+        }
+        composable("rocket_list_screen") {
+            RLScreen(viewModel)
+        }
     }
 }
 
 @Composable
-fun SplashScreen(navController: NavController, viewModel: MainViewModel = viewModel()) {
+fun SplashScreen(navController: NavController, viewModel: MainViewModel) {
     var splashDisplayed by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -70,7 +63,7 @@ fun SplashScreen(navController: NavController, viewModel: MainViewModel = viewMo
     }
 
     if (splashDisplayed) {
-        navController.navigate("main_screen") {
+        navController.navigate("rocket_list_screen") {
             popUpTo("splash_screen") { inclusive = true }
         }
     } else {
@@ -95,53 +88,66 @@ fun SplashScreen(navController: NavController, viewModel: MainViewModel = viewMo
 }
 
 @Composable
-fun MyApp(viewModel: MainViewModel) {
-    val navController = rememberNavController()
-
-    NavHost(
-        navController = navController,
-        startDestination = "splash_screen"
+fun MainScreen(navController: NavController) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        composable("splash_screen") {
-            SplashScreen(navController = navController, viewModel = viewModel)
-        }
-        composable("main_screen") {
-            MainScreen()
-        }
-        composable("rocket_list_screen") {
-            RLScreen()
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = "Welcome to SpaceX Rocket List!", fontSize = 20.sp)
+            Spacer(modifier = Modifier.height(16.dp))
+            androidx.compose.material3.Button(
+                onClick = { navController.navigate("rocket_list_screen") }
+            ) {
+                Text(text = "Go to Rocket List")
+            }
         }
     }
 }
 
 @Composable
-fun MainScreen() {
-    val context = LocalContext.current
+fun RocketListScreen(viewModel: MainViewModel = viewModel()) {
+    val rockets by viewModel.rocketList.collectAsState()
 
     LaunchedEffect(Unit) {
-        (context as? MainActivity)?.onMainScreenLoaded()
+        println("Fetching rockets...") // ✅ Should print only once
+        viewModel.fetchRockets()
     }
 
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Loading Login Fragment...")
+        if (rockets.isEmpty()) {
+            Text(text = "Loading Rockets...")
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(rockets) { rocket ->
+                    RocketItem(rocket)
+                }
+            }
+        }
     }
 }
 
+
 @Composable
-fun RLScreen() {
-    val context = LocalContext.current
-
-    LaunchedEffect(Unit) {
-        (context as? MainActivity)?.onRocketListScreenLoaded()
-    }
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "Loading Rocket List Fragment...")
+fun RocketItem(rocket: Rocket) {
+    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+        Text(text = "Rocket Name: ${rocket.name}", fontSize = 18.sp)
+        Text(text = "Rocket Type: ${rocket.type}", fontSize = 18.sp)
+        Text(text = "Active: ${rocket.active}", fontSize = 18.sp)
+        Text(text = "Cost per Launch: ${rocket.cost_per_launch}", fontSize = 18.sp)
+        Text(text = "Success Rate: ${rocket.success_rate_pct}%", fontSize = 18.sp)
+        Text(text = "Country: ${rocket.country}", fontSize = 18.sp)
+        Text(text = "Company: ${rocket.company}", fontSize = 18.sp)
+        Text(text = "Wikipedia: ${rocket.wikipedia}", fontSize = 18.sp)
+        Text(text = "Description: ${rocket.description}", fontSize = 18.sp)
+        Text(text = "Height: ${rocket.height} m", fontSize = 18.sp)
+        Text(text = "Diameter: ${rocket.diameter} m", fontSize = 18.sp)
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }

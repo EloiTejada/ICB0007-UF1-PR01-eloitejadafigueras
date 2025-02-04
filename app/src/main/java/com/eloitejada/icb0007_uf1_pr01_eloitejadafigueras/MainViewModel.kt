@@ -1,17 +1,27 @@
 package com.eloitejada.icb0007_uf1_pr01_eloitejadafigueras
 
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class MainViewModel : ViewModel() {
 
     var isSplashCompleted = false
         private set
+
+
+
+    private val _rocketList = MutableStateFlow<List<Rocket>>(emptyList())
+    val rocketList: StateFlow<List<Rocket>> get() = _rocketList
+
+    init {
+        fetchRockets() // Fetch rockets when ViewModel is created
+    }
 
     private val _username = MutableStateFlow("")
     val username: StateFlow<String> get() = _username
@@ -31,12 +41,49 @@ class MainViewModel : ViewModel() {
         }
     }
 
-
     fun setUsername(value: String) {
         _username.value = value
     }
 
     fun setPassword(value: String) {
         _password.value = value
+    }
+
+    private var isFetched = false
+
+    fun fetchRockets() {
+        if (isFetched) return
+
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.getRockets()
+                if (response.isSuccessful) {
+                    response.body()?.let { rockets ->
+                        if (_rocketList.value != rockets) {
+                            _rocketList.value = rockets
+                            isFetched = true
+                        }
+                    }
+                } else {
+                    println("Error fetching rockets: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                println("Error fetching rockets: ${e.message}")
+            }
+        }
+    }
+
+
+
+    object RetrofitInstance {
+        private const val BASE_URL = "https://api.spacexdata.com/v4/"
+
+        val api: RocketAPIService by lazy {
+            Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+                .create(RocketAPIService::class.java)
+        }
     }
 }

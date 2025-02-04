@@ -1,4 +1,4 @@
-package com.eloitejada.icb0007_uf1_pr01_eloitejadafigueras.ui.theme
+package com.eloitejada.icb0007_uf1_pr01_eloitejadafigueras
 
 import com.google.gson.annotations.SerializedName
 
@@ -20,4 +20,5 @@ data class Rocket(@SerializedName("name")var name: String,
                   @SerializedName("wikipedia")var wikipedia: String,
                   @SerializedName("description")var description: String,
                   @SerializedName("height")var height: Height,
-                  @SerializedName("diameter")var diameter: Diameter)
+                  @SerializedName("diameter")var diameter: Diameter
+)
