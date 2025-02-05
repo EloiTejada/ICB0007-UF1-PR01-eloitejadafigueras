@@ -54,38 +54,35 @@ fun MyApp(viewModel: MainViewModel) {
 
 @Composable
 fun SplashScreen(navController: NavController, viewModel: MainViewModel) {
-    var splashDisplayed by remember { mutableStateOf(false) }
+    val isSplashCompleted by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.startSplash {
-            splashDisplayed = true
-        }
-    }
-
-    if (splashDisplayed) {
-        navController.navigate("rocket_list_screen") {
-            popUpTo("splash_screen") { inclusive = true }
-        }
-    } else {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Image(
-                    painter = painterResource(id = R.drawable.splash_image),
-                    contentDescription = "Splash Screen",
-                    modifier = Modifier.size(100.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "SpaceX Rocket List",
-                    fontSize = 24.sp
-                )
+            navController.navigate("main_screen") {
+                popUpTo("splash_screen") { inclusive = true }
             }
         }
     }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(
+                painter = painterResource(id = R.drawable.splash_image),
+                contentDescription = "Splash Screen",
+                modifier = Modifier.size(100.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "SpaceX Rocket List",
+                fontSize = 24.sp
+            )
+        }
+    }
 }
+
 
 @Composable
 fun MainScreen(navController: NavController) {
@@ -106,13 +103,8 @@ fun MainScreen(navController: NavController) {
 }
 
 @Composable
-fun RocketListScreen(viewModel: MainViewModel = viewModel()) {
+fun RLScreen(viewModel: MainViewModel) {
     val rockets by viewModel.rocketList.collectAsState()
-
-    LaunchedEffect(Unit) {
-        println("Fetching rockets...") // ✅ Should print only once
-        viewModel.fetchRockets()
-    }
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -132,6 +124,7 @@ fun RocketListScreen(viewModel: MainViewModel = viewModel()) {
         }
     }
 }
+
 
 
 @Composable
