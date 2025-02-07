@@ -1,5 +1,6 @@
 package com.eloitejada.icb0007_uf1_pr01_eloitejadafigueras
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -13,10 +14,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -26,22 +29,33 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            MyApp(mainViewModel)
+
+        val startDestination = if (intent.getStringExtra("navigateTo") == "main_screen") {
+            "main_screen"
+        } else {
+            "splash_screen"
         }
+        setContent {
+            MyApp(mainViewModel, startDestination)
+        }
+
+
     }
 }
 
 @Composable
-fun MyApp(viewModel: MainViewModel) {
+fun MyApp(viewModel: MainViewModel, startDestination: String) {
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = "splash_screen"
+        startDestination = startDestination
     ) {
         composable("splash_screen") {
             SplashScreen(navController, viewModel)
+        }
+        composable("login_screen") {
+            LoginScreen(navController)
         }
         composable("main_screen") {
             MainScreen(navController)
@@ -52,13 +66,32 @@ fun MyApp(viewModel: MainViewModel) {
     }
 }
 
+
+@Composable
+fun LoginScreen(navController: NavHostController) {
+    val context = LocalContext.current
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        context.startActivity(Intent(context, LoginActivity::class.java))
+        if (context is ComponentActivity) {
+            context.finish()
+        }
+
+    }
+}
+
+
+
 @Composable
 fun SplashScreen(navController: NavController, viewModel: MainViewModel) {
     val isSplashCompleted by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.startSplash {
-            navController.navigate("main_screen") {
+            navController.navigate("login_screen") {
                 popUpTo("splash_screen") { inclusive = true }
             }
         }
@@ -106,6 +139,10 @@ fun MainScreen(navController: NavController) {
 fun RLScreen(viewModel: MainViewModel) {
     val rockets by viewModel.rocketList.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.loadRockets()
+    }
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -118,6 +155,7 @@ fun RLScreen(viewModel: MainViewModel) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(rockets) { rocket ->
+                    Log.d("RocketItem", "Rocket: $rocket")
                     RocketItem(rocket)
                 }
             }

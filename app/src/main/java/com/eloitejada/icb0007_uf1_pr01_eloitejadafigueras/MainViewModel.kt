@@ -1,5 +1,6 @@
 package com.eloitejada.icb0007_uf1_pr01_eloitejadafigueras
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
@@ -9,7 +10,7 @@ import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class MainViewModel : ViewModel() {
+class MainViewModel(private val repository: RocketRepository): ViewModel() {
 
     var isSplashCompleted = false
         private set
@@ -56,20 +57,22 @@ class MainViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.api.getRockets()
-                if (response.isSuccessful) {
-                    response.body()?.let { rockets ->
-                        if (_rocketList.value != rockets) {
-                            _rocketList.value = rockets
-                            isFetched = true
-                        }
-                    }
+                val rockets = repository.fetchRocketsFromApi()
+
+                if (rockets.isNotEmpty()) {
+                    _rocketList.value = rockets
+                    isFetched = true
                 } else {
-                    println("Error fetching rockets: ${response.errorBody()?.string()}")
+                    Log.w("MainViewModel", "No rockets fetched from API")
                 }
             } catch (e: Exception) {
-                println("Error fetching rockets: ${e.message}")
+                Log.e("MainViewModel", "Error fetching rockets: ${e.message}")
             }
+        }
+    }
+    fun loadRockets() {
+        viewModelScope.launch {
+            _rocketList.value = repository.fetchRocketsFromApi()
         }
     }
 

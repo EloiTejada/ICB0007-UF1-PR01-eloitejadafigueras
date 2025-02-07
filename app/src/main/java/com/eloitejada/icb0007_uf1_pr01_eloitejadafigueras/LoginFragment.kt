@@ -1,5 +1,6 @@
 package com.eloitejada.icb0007_uf1_pr01_eloitejadafigueras
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -81,9 +82,12 @@ class LoginFragment : Fragment() {
     private fun onLoginSuccess() {
         Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
 
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.frame_layout, RocketListFragment(), "RLFragment")
-            .addToBackStack(null)
-            .commit()
+        val intent = Intent(requireActivity(), MainActivity::class.java)
+        intent.putExtra("navigateTo", "main_screen")
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
     }
+
+
+
 }

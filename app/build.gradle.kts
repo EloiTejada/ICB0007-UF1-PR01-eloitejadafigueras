@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.Packaging
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -37,6 +39,16 @@ android {
     buildFeatures {
         compose = true
     }
+
+        packaging {
+            resources {
+                pickFirsts += "META-INF/AL2.0"
+                pickFirsts += "META-INF/INDEX.LIST"
+                pickFirsts += "META-INF/DEPENDENCIES"
+            }
+        }
+
+
 }
 
 dependencies {
@@ -59,6 +71,11 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.kotlinx.coroutines.android)
     implementation (libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.material)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.room.common)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.firebase.appdistribution.gradle)
 
 
     testImplementation(libs.junit)
